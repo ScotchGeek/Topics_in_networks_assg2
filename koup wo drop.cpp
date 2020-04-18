@@ -7,13 +7,14 @@ using namespace std;
 vector<vector<int>> cit(8);
 vector<int> packetdelay(8);
 int N=8,b=4;
-double drop=0,tot=0,dt=0,dt1=0;
+long double drop=0,tot=0,dt=0,dt1=0,maxtimeslots=10000;
 int portInUse[100],totalLinksUsed[100];
-double packetgenprob=0.5,maxtimeslots=10000,time1=0,aver_delay=0;
+double packetgenprob=0.5,time1=0,aver_delay=0;
 vector<vector<int>> packet(8);
 vector<vector<int>> oppacket(8);
 double std_delay[100],sd=0,K=0.6*N;
 int queue=1,t,g=2,k=0,j,i;
+vector<int> drops;
 
 void calculate_average_delay()
 {
@@ -47,32 +48,34 @@ void calculate_link_utilization()
 
 void traffic_generation()
 {
-   
-   
-        for(j=0;j<N;j++){
-            int port=(rand() % (N));
-           if(((double) rand() / (RAND_MAX)) < packetgenprob)
-           {
-                tot++;
-                   if((packet[port].size() == K))
-                   {
-                       drop++;
-                    //   tot++;
-                       continue;
-                   }
-                   else
-                   {
-                    //tot++;
-                    packet[port].push_back(port);         //Stores the count of queue
-                    cit[port].push_back((int)time1);          //Stores the arrival time
-                    
-                   }    
+    drop=0;
+    for(j=0;j<N;j++)
+        drops[i]=-1;
+    for(j=0;j<N;j++){
+        int port=(rand() % (N));
+       if(((double) rand() / (RAND_MAX)) < packetgenprob)
+       {
+            if((packet[port].size() == K))
+            {
+                drops[port]=0;
+                drop++;
+                continue;
+            }
+            else
+            {
+                drops[port]++;            
+                packet[port].push_back(port);         //Stores the count of queue
+                cit[port].push_back((int)time1);          //Stores the arrival time
+            }    
                    
             }
         }
-        
-    dt+=(drop/tot);
-    dt1++;
+    
+    for(j=0;j<N;j++)
+        if(drops[i] == 0)
+            drop++;
+    tot=(long double)(drop/N);
+    dt+=tot;
 }
 
 void initialize_totalLinksUsed()
@@ -89,7 +92,7 @@ void initialize_portInUse()
 
 void print_drop_frequency()
 {
-    printf("%f ",(dt/dt1));    
+    printf("%Lf ",(long double)(dt/(maxtimeslots)));    
 }
 
 void two_schedule()
@@ -123,12 +126,13 @@ int main()
     printf("Enter packet generation probability:\n");
     scanf("%lf",&packetgenprob);
     printf("Enter simulation time:\n");
-    scanf("%lf",&maxtimeslots);
+    scanf("%Lf",&maxtimeslots);
     printf("Type 1 for INQ,2 for KOUQ,3 for IsLIP:\n");
     scanf("%d",&queue);
 
     initialize_totalLinksUsed();
     packet.resize(N);
+    drops.resize(N);
     oppacket.resize(N);
     cit.resize(N);
     
